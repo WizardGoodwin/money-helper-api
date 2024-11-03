@@ -5,9 +5,10 @@ import { ConfigModule } from '@nestjs/config';
 
 import { DatabaseModule } from './database/database.module';
 import { CategoriesModule } from './categories/categories.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, CategoriesModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, CategoriesModule, PaymentsModule],
   controllers: [AppController],
   providers: [AppService],
 })

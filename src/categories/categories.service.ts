@@ -3,7 +3,8 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
+import { FindCategoriesDto } from './dto/find-categories.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -15,28 +16,53 @@ export class CategoriesService {
 
   async create(createCategoryDto: CreateCategoryDto) {
     const category = new Category(createCategoryDto);
-    await this.entityManager.save(category);
+    category.payments = [];
+    const newCategory = await this.entityManager.save(category);
 
-    return category;
+    return { message: 'Payment created successfully', category: newCategory };
   }
 
-  async findAll() {
-    return this.categoriesRepository.find();
+  async find(findCategoriesDto: FindCategoriesDto) {
+    const { type } = findCategoriesDto;
+
+    const conditions:
+      | FindOptionsWhere<Category>
+      | FindOptionsWhere<Category>[] = { ...(type ? { type } : {}) };
+
+    return this.categoriesRepository.find({ where: conditions });
   }
 
   async findOne(id: number) {
-    return this.categoriesRepository.findOneBy({ id });
+    return this.categoriesRepository.findOne({
+      where: { id },
+      relations: ['payments'],
+    });
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    let category = await this.categoriesRepository.findOneBy({ id });
-    category = { ...category, ...updateCategoryDto };
-    await this.entityManager.save(category);
+    const category = await this.categoriesRepository.findOneBy({ id });
+    if (!category) {
+      return 'Category not found';
+    }
+    category.name = updateCategoryDto.name;
+    category.type = updateCategoryDto.type;
 
-    return category;
+    const updatedCategory = await this.categoriesRepository.save(category);
+
+    return {
+      message: 'Category updated successfully',
+      category: updatedCategory,
+    };
   }
 
   async remove(id: number) {
+    const category = await this.categoriesRepository.findOneBy({ id });
+    if (!category) {
+      return 'Category not found';
+    }
+
     await this.categoriesRepository.delete(id);
+
+    return 'Category deleted successfully';
   }
 }
