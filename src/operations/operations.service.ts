@@ -6,6 +6,7 @@ import { Operation } from './entities/operation.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { Category } from 'src/categories/entities/category.entity';
 import { CategoriesService } from 'src/categories/categories.service';
+import { WalletsService } from 'src/wallets/wallets.service';
 
 @Injectable()
 export class OperationsService {
@@ -13,6 +14,7 @@ export class OperationsService {
     @InjectRepository(Operation)
     private readonly operationsRepository: Repository<Operation>,
     private readonly categoriesService: CategoriesService,
+    private readonly walletsService: WalletsService,
     private readonly entityManager: EntityManager,
   ) {}
 
@@ -23,17 +25,31 @@ export class OperationsService {
     if (!category) {
       return 'Category not found';
     }
+    const wallet = await this.walletsService.findOne(
+      createOperationDto.walletId,
+    );
+    if (!wallet) {
+      return 'Wallet not found';
+    }
+    console.log('wallet', wallet);
+    console.log('createOperationDto', createOperationDto);
     const operation = new Operation();
     operation.amount = createOperationDto.amount;
     operation.category = category;
+    operation.wallet = wallet;
 
     const newOperation = await this.entityManager.save(operation);
 
-    delete newOperation.category.operations;
+    delete newOperation.category;
+    delete newOperation.wallet;
 
     return {
       message: 'Operation created successfully',
-      operation: { ...newOperation, categoryId: category.id },
+      operation: {
+        ...newOperation,
+        categoryId: category.id,
+        walletId: wallet.id,
+      },
     };
   }
 
@@ -44,7 +60,7 @@ export class OperationsService {
   async findOne(id: number) {
     return this.operationsRepository.findOne({
       where: { id },
-      relations: ['category'],
+      relations: ['category', 'wallet'],
     });
   }
 
@@ -56,8 +72,20 @@ export class OperationsService {
     const category = await this.categoriesService.findOne(
       updateOperationDto.categoryId,
     );
+    if (!category) {
+      return 'Category not found';
+    }
+    const wallet = await this.walletsService.findOne(
+      updateOperationDto.walletId,
+    );
+    if (!wallet) {
+      return 'Wallet not found';
+    }
+    console.log('wallet', wallet);
+    console.log('updateOperationDto', updateOperationDto);
     operation.amount = updateOperationDto.amount;
     operation.category = category;
+    operation.wallet = wallet;
     const updatedOperation = await this.operationsRepository.save(operation);
 
     return {

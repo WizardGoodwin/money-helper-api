@@ -1,4 +1,5 @@
 import { Category } from 'src/categories/entities/category.entity';
+import { Wallet } from 'src/wallets/entities/wallet.entity';
 import {
   Column,
   CreateDateColumn,
@@ -21,6 +22,12 @@ export class Operation {
   })
   @JoinColumn()
   category: Category;
+
+  @ManyToOne(() => Wallet, (wallet) => wallet.operations, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  wallet: Wallet;
 
   @CreateDateColumn()
   created_at: Date;
