@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOperationDto } from './dto/create-operation.dto';
 import { UpdateOperationDto } from './dto/update-operation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,21 +27,25 @@ export class OperationsService {
       createOperationDto.categoryId,
     );
     if (!category) {
-      return 'Category not found';
+      throw new NotFoundException(
+        `Category with ID ${createOperationDto.categoryId} not found`,
+      );
     }
 
     const wallet = await this.walletsService.findOne(
       createOperationDto.walletId,
     );
     if (!wallet) {
-      return 'Wallet not found';
+      throw new NotFoundException(
+        `Wallet with ID ${createOperationDto.walletId} not found`,
+      );
     }
 
     if (
       category.type === 'outcome' &&
       wallet.balance < createOperationDto.amount
     ) {
-      return 'Not enough funds';
+      throw new BadRequestException('Not enough funds');
     }
 
     const operation = new Operation();
@@ -87,21 +95,25 @@ export class OperationsService {
   async update(id: number, updateOperationDto: UpdateOperationDto) {
     const operation = await this.operationsRepository.findOneBy({ id });
     if (!operation) {
-      return 'Operation not found';
+      throw new NotFoundException(`Operation with ID ${id} not found`);
     }
 
     const category = await this.categoriesService.findOne(
       updateOperationDto.categoryId,
     );
     if (!category) {
-      return 'Category not found';
+      throw new NotFoundException(
+        `Category with ID ${updateOperationDto.categoryId} not found`,
+      );
     }
 
     const wallet = await this.walletsService.findOne(
       updateOperationDto.walletId,
     );
     if (!wallet) {
-      return 'Wallet not found';
+      throw new NotFoundException(
+        `Wallet with ID ${updateOperationDto.walletId} not found`,
+      );
     }
 
     operation.amount = updateOperationDto.amount;
@@ -118,11 +130,11 @@ export class OperationsService {
   async remove(id: number) {
     const operation = await this.operationsRepository.findOneBy({ id });
     if (!operation) {
-      return 'Operation not found';
+      throw new NotFoundException(`Operation with ID ${id} not found`);
     }
 
     await this.operationsRepository.delete(id);
 
-    return 'Operation deleted successfully';
+    return { message: 'Operation deleted successfully' };
   }
 }
