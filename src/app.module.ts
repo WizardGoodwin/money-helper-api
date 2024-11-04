@@ -5,10 +5,15 @@ import { ConfigModule } from '@nestjs/config';
 
 import { DatabaseModule } from './database/database.module';
 import { CategoriesModule } from './categories/categories.module';
-import { PaymentsModule } from './payments/payments.module';
+import { OperationsModule } from './operations/operations.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, CategoriesModule, PaymentsModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
+    CategoriesModule,
+    OperationsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

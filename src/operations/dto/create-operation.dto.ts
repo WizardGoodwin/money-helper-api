@@ -1,4 +1,4 @@
-export class CreatePaymentDto {
+export class CreateOperationDto {
   amount: number;
   categoryId: number;
 }

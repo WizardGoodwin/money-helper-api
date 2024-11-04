@@ -9,14 +9,14 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Payment {
+export class Operation {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   amount: number;
 
-  @ManyToOne(() => Category, (category) => category.payments, {
+  @ManyToOne(() => Category, (category) => category.operations, {
     onDelete: 'CASCADE',
   })
   @JoinColumn()

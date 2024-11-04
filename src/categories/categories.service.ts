@@ -16,10 +16,10 @@ export class CategoriesService {
 
   async create(createCategoryDto: CreateCategoryDto) {
     const category = new Category(createCategoryDto);
-    category.payments = [];
+    category.operations = [];
     const newCategory = await this.entityManager.save(category);
 
-    return { message: 'Payment created successfully', category: newCategory };
+    return { message: 'Category created successfully', category: newCategory };
   }
 
   async find(findCategoriesDto: FindCategoriesDto) {
@@ -35,7 +35,7 @@ export class CategoriesService {
   async findOne(id: number) {
     return this.categoriesRepository.findOne({
       where: { id },
-      relations: ['payments'],
+      relations: ['operations'],
     });
   }
 
