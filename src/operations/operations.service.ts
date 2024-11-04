@@ -25,14 +25,21 @@ export class OperationsService {
     if (!category) {
       return 'Category not found';
     }
+
     const wallet = await this.walletsService.findOne(
       createOperationDto.walletId,
     );
     if (!wallet) {
       return 'Wallet not found';
     }
-    console.log('wallet', wallet);
-    console.log('createOperationDto', createOperationDto);
+
+    if (
+      category.type === 'outcome' &&
+      wallet.balance < createOperationDto.amount
+    ) {
+      return 'Not enough funds';
+    }
+
     const operation = new Operation();
     operation.amount = createOperationDto.amount;
     operation.category = category;
@@ -43,6 +50,18 @@ export class OperationsService {
     delete newOperation.category;
     delete newOperation.wallet;
 
+    if (category.type === 'outcome') {
+      wallet.balance -= createOperationDto.amount;
+    }
+
+    if (category.type === 'income') {
+      wallet.balance += createOperationDto.amount;
+    }
+
+    this.walletsService.update(wallet.id, wallet);
+
+    delete wallet.operations;
+
     return {
       message: 'Operation created successfully',
       operation: {
@@ -50,6 +69,7 @@ export class OperationsService {
         categoryId: category.id,
         walletId: wallet.id,
       },
+      wallet,
     };
   }
 
@@ -69,20 +89,21 @@ export class OperationsService {
     if (!operation) {
       return 'Operation not found';
     }
+
     const category = await this.categoriesService.findOne(
       updateOperationDto.categoryId,
     );
     if (!category) {
       return 'Category not found';
     }
+
     const wallet = await this.walletsService.findOne(
       updateOperationDto.walletId,
     );
     if (!wallet) {
       return 'Wallet not found';
     }
-    console.log('wallet', wallet);
-    console.log('updateOperationDto', updateOperationDto);
+
     operation.amount = updateOperationDto.amount;
     operation.category = category;
     operation.wallet = wallet;
